@@ -24,8 +24,10 @@
 #define DIALOG_TYPE_ALERT @"alert"
 #define DIALOG_TYPE_PROMPT @"prompt"
 
+static void soundCompletionCallback(SystemSoundID ssid, void* data);
+
 @implementation CDVNotification
-@synthesize progressHUD;
+
 /*
  * showDialogWithMessage - Common method to instantiate the alert view for alert, confirm, and prompt notifications.
  * Parameters:
@@ -36,27 +38,6 @@
  *  callbackId    The commmand callback id.
  *  dialogType    The type of alert view [alert | prompt].
  */
-- (void)activityStart:(CDVInvokedUrlCommand*)command
-{
-    self.progressHUD = nil;
-    self.progressHUD = [MBProgressHUD showHUDAddedTo:self.webView.superview animated:YES];
-    self.progressHUD.mode = MBProgressHUDModeIndeterminate;
-    self.progressHUD.labelText = @"Loading...";
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void)activityStop:(CDVInvokedUrlCommand*)command
-{
-    if (!self.progressHUD) {
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        return;
-    }
-    [self.progressHUD hide:YES];
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@""];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
 - (void)showDialogWithMessage:(NSString*)message title:(NSString*)title buttons:(NSArray*)buttons defaultText:(NSString*)defaultText callbackId:(NSString*)callbackId dialogType:(NSString*)dialogType
 {
     CDVAlertView* alertView = [[CDVAlertView alloc]
@@ -68,7 +49,7 @@
 
     alertView.callbackId = callbackId;
 
-    int count = [buttons count];
+    NSUInteger count = [buttons count];
 
     for (int n = 0; n < count; n++) {
         [alertView addButtonWithTitle:[buttons objectAtIndex:n]];
@@ -125,7 +106,7 @@
     // Determine what gets returned to JS based on the alert view type.
     if (alertView.alertViewStyle == UIAlertViewStyleDefault) {
         // For alert and confirm, return button index as int back to JS.
-        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:buttonIndex + 1];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsInt:(int)(buttonIndex + 1)];
     } else {
         // For prompt, return button index and input text back to JS.
         NSString* value0 = [[alertView textFieldAtIndex:0] text];
@@ -140,13 +121,14 @@
 
 static void playBeep(int count) {
     SystemSoundID completeSound;
+    NSInteger cbDataCount = count;
     NSURL* audioPath = [[NSBundle mainBundle] URLForResource:@"CDVNotification.bundle/beep" withExtension:@"wav"];
     #if __has_feature(objc_arc)
         AudioServicesCreateSystemSoundID((__bridge CFURLRef)audioPath, &completeSound);
     #else
         AudioServicesCreateSystemSoundID((CFURLRef)audioPath, &completeSound);
     #endif
-    AudioServicesAddSystemSoundCompletion(completeSound, NULL, NULL, soundCompletionCallback, (void*)(count-1));
+    AudioServicesAddSystemSoundCompletion(completeSound, NULL, NULL, soundCompletionCallback, (void*)(cbDataCount-1));
     AudioServicesPlaySystemSound(completeSound);
 }
 

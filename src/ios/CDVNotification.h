@@ -31,11 +31,10 @@
 - (void)beep:(CDVInvokedUrlCommand*)command;
 - (void)activityStart:(CDVInvokedUrlCommand*)command;
 - (void)activityStop:(CDVInvokedUrlCommand*)command;
-@property (nonatomic, assign) MBProgressHUD* progressHUD;    
+@property (nonatomic, assign) MBProgressHUD* progressHUD;
 @end
 
 @interface CDVAlertView : UIAlertView {}
 @property (nonatomic, copy) NSString* callbackId;
 
-    
 @end
