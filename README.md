@@ -20,3 +20,5 @@
 # org.apache.cordova.dialogs
 
 Plugin documentation: [doc/index.md](doc/index.md)
+
+In addition to cordova dialogs plugin, this plugin has MBProgressHud added so that activityStart and activityStop methods which were only supported for Android, will now also be available in iOS. To show loading indicator, this plugin uses MBProgressHud for iOS.
